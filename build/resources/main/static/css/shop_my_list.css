@@ -1,0 +1,50 @@
+.shop_my_list_title_box {
+    width: 100%;
+    height: auto;
+    padding-bottom: 20px;
+    text-align: center;
+}
+.shop_my_list_top_1 {
+    flex-grow: 1;
+}
+.shop_my_list_top_2 {
+    flex-grow: 1;
+    text-align: right;
+}
+.shop_my_list_top_select {
+    width: auto;
+    border-radius: 4px;
+}
+.shop_list_table > thead > tr > th {
+    font-size: 18px;
+    text-align: center;
+    font-weight: bold;
+    color: #666;
+}
+.shop_list_table > tbody > tr > td {
+    font-size: 14px;
+    text-align: center;
+    padding: 10px;
+    vertical-align: middle;
+}
+
+.shop_my_list_save_btn {
+    width: auto;
+    padding: 5px 15px;
+    font-size: 14px;
+    border-radius: 4px;
+}
+.shop_my_list_save_btn:hover, .shop_my_list_detail_btn:hover {
+    background-color: #bbbbbb;
+}
+.shop_my_list_detail_btn {
+    width: auto;
+    height: auto;
+    padding: 5px 15px;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.shop_my_list_detail_btn_img {
+    width: 25px;
+    height: 25px;
+}

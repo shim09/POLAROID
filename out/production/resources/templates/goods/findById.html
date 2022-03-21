@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link href="/css/reset.css" rel="stylesheet" type="text/css">
+    <link href="/css/common.css" rel="stylesheet" type="text/css">
+    <link href="/css/number.css" rel="stylesheet" type="text/css">
+    <link href="/css/shop_my_detail.css" rel="stylesheet" type="text/css">
+    <link href="/css/board_detail.css" rel="stylesheet" type="text/css">
+    <link href="/css/goods_buy_box.css" rel="stylesheet" type="text/css">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+            crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="/js/common.js"></script>
+    <script type="text/javascript" src="https://service.iamport.kr/js/iamport.payment-1.1.5.js"></script>
+    <title>POLAROID</title>
+
+    <script>
+        function buy() {
+            location.href = "buy";
+        }
+    </script>
+
+</head>
+<!--<style>-->
+<!--    .img-wrapper {-->
+<!--        /*width: 100%;*/-->
+<!--        /*height: 400px;*/-->
+<!--        /*overflow: hidden;*/-->
+<!--        width: 600px;-->
+<!--        height:600px;-->
+<!--        margin: 0 auto;-->
+<!--        overflow:hidden;-->
+<!--        position:relative;-->
+
+<!--    }-->
+<!--    .imgFile {-->
+<!--        width: 100%;-->
+<!--        height: 100%;-->
+<!--        object-fit:cover;-->
+<!--        /*object-fit: contain;*/-->
+<!--    }-->
+<!--</style>-->
+<body>
+<!-- header -->
+<div class="header">
+    <div class="max_box_2 vertical_box">
+        <div class="header_logo vertical_mid">
+            <img class="header_logo_img" src="/image/logo_white.png" onclick="location.href='/'" />
+        </div>
+        <div class="header_search_box vertical_mid">
+            <form action="/goods/search" method="get" class="text-center">
+                <select name="select" id="select" style="width: 15%">
+                    <option value="goodsTitle"> 제목 </option>
+                    <option value="goodsWriter"> 작성자 </option>
+                </select>
+                <input name="search" class="header_search_input fs_16" type="text" placeholder="Search"/>
+                <div class="header_search_btn">
+                    <button type="submit"> <img class="header_search_btn_img" src="/image/search.png"/> </button>
+                </div>
+            </form>
+        </div>
+        <div class="header_right vertical_mid" >
+            <div class="dis_flex header_right_box" th:if="${session['LoginEmail']} != null">
+                <!-- 채팅 -->
+                <div class="header_chat_box flex-grow-1">
+                    <div class="header_chat ">
+                        <img class="far fa-envelope icon-badge-icon header_chat_img" src="/image/chat.png" onclick="location.href='/chat'"/>
+                        <div class="icon-badge" th:if="${member.memberMessage>0}"><p th:text="${member.memberMessage}"> </p></div>
+                    </div>
+                </div>
+                <!-- 좋아요 모아보기 -->
+                <div class="header_like flex-grow-1">
+                    <img class="header_like_img" src="/image/like.png" onclick="location.href='/member/likeListShow'"/>
+                </div>
+                <!-- 사용자 정보 -->
+                <div class="header_user flex-grow-1" id="userToggleButton">
+                    <img class="header_user_img" th:src="@{|/profile/${member.memberFilename}|}"/>
+                </div>
+            </div>
+            <div class="header_user_toggle_box" id="userToggleMenu">
+                <input class="header_user_toggle_btn fs_14" type="button" value="마이페이지" onclick="location.href='/member/mypage'"/>
+                <input class="header_user_toggle_btn fs_14" type="button" value="SNS" onclick="location.href='/board/'"/>
+                <input class="header_user_toggle_btn fs_14" type="button" value="결제리스트" onclick="location.href='/goods/payList'"/>
+                <input class="header_user_toggle_btn fs_14" type="button" value="내 쇼핑몰" th:onclick="'location.href=\''+ @{|/goods/list/${session.LoginNumber}|} + '\''"/>
+                <button type="button" class="header_user_toggle_btn fs_14" id="show" data-bs-toggle="modal" data-bs-target="#exampleModal">로그아웃</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 로그아웃 모달창 -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content p_30 bg_ef">
+            <div class="modal-body fs_16 text_center fw_b">
+                로그아웃 하시겠습니까?
+            </div>
+            <div class="modal-footer border_none modal_btn_box">
+                <button type="button" class="btn btn-secondary flex-grow-1 bg_ccc logout_modal_btn logout_modal_btn_cancel" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-primary flex-grow-1 bg_524A4E logout_modal_btn logout_modal_btn_okay" onclick="modalLogout()">로그아웃</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 로그아웃 모달창 -->
+
+<!-- header -->
+
+<!-- 삭제모달 -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content p_30 bg_ef">
+            <div class="modal-body fs_16 text_center fw_b">
+                정말로 게시글을 삭제하시겠습니까?
+            </div>
+            <div class="modal-footer border_none modal_btn_box">
+                <button type="button" class="btn btn-secondary flex-grow-1 bg_ccc logout_modal_btn logout_modal_btn_cancel" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-primary flex-grow-1 bg_524A4E logout_modal_btn logout_modal_btn_okay" th:onclick="goodsDelete([[${goods.goodsId}]])">삭제하기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:if="${session.LoginRole.equals('ROLE_ADMIN')}">
+    <div class="up_btn" data-bs-toggle="modal" data-bs-target="#adminDeleteModal">
+        <img class="update_btn_img" src="/image/red-x.svg">
+    </div>
+</div>
+
+<div class="modal fade" id="adminDeleteModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content p_30 bg_ef">
+            <div class="modal-body fs_16 text_center fw_b">
+                정말로 게시글을 삭제하시겠습니까?
+            </div>
+            <div class="modal-footer border_none modal_btn_box">
+                <button type="button" class="btn btn-secondary flex-grow-1 bg_ccc logout_modal_btn logout_modal_btn_cancel" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-primary flex-grow-1 bg_524A4E logout_modal_btn logout_modal_btn_okay" th:onclick="adminGoodsDelete([[${goods.goodsId}]])">삭제하기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="contents" style="background-color: #fff;">
+    <div class="max_box_2 pt_60">
+        <div class="pb_20 text_center">
+            <p class="fs_24 fw_b">상품 내용</p>
+            <div class="title_bottom_line2"></div>
+        </div>
+<!--        <div class="text_right mb_20">-->
+<!--            <input class="shop_my_detail_top_btn" type="button" value="뒤로가기" onclick="location.href='/goods/'"/>-->
+<!--            <input class="shop_my_detail_top_btn" type="button" th:if="${session.LoginNumber.equals(goods.memberId)}" th:onclick="goodsDelete([[${goodsId}]])" value="삭제"/>-->
+<!--            <input class="shop_my_detail_top_btn" type="button" th:if="${session.LoginNumber.equals(goods.memberId)}" th:onclick="goodsUpdate([[${goodsId}]])" value="수정하기"/>-->
+<!--        </div>-->
+        <div>
+            <div class="text_center">
+                <div class="shop_my_detail_img_box mb_5" th:each="goodsFile: ${goods.getGoodsPhoto()}">
+                  <img th:src="@{|/goodsFile/${goodsFile.getGoodsFilename}|}" class="shop_my_detail_img" alt="...">
+                </div>
+            </div>
+    </div>
+
+    <br><hr>
+
+    <div class="card text-center">
+
+        <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true"> 상품정보 </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false"> 상품후기 </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="myTabContent">
+
+            <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                <h2 class="mt-4"> 상품 정보 </h2>
+                    <div class="title_bottom_line2 mb-5"></div>
+                    <div class="input_box_3">
+                        <p class="input_label">상품 이름</p>
+                        <input class="input_text_5" type="text" th:value="${goods.goodsTitle}" readonly>
+                    </div>
+                    <div class="input_box_2">
+                        <p class="input_label">상세 설명</p>
+                        <textarea class="input_text_7" th:text="${goods.goodsInFor}" readonly></textarea>
+                    </div>
+                    <div class="input_box_3">
+                    <p class="input_label">가격</p>
+                    <input class="input_text_5" type="text" th:value="${goods.goodsPrice}+원" readonly/>
+                    </div>
+                    <div class="input_box_3 mb-5">
+                        <p class="input_label">수량</p>
+                        <input class="input_text_8" type="text" th:value="${goods.goodsStock}" readonly />
+                    </div>
+            </div>
+<!--                </div>-->
+
+
+            <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                <h2 class="mt-4"> Review </h2>
+                <div class="title_bottom_line2"></div>
+                <div id="comment-write">
+                    <input type="hidden" id="goodsId" name="goodId" th:value="${goods.goodsId}">
+                    <input type="hidden" id="memberId" name="memberId" th:value="${session['LoginNumber']}" readonly><br><br>
+                    <input type="text" id="memberNickname" name="memberNickname" th:value="${member.memberNickname}" readonly><br><br>
+                    <input type="text" id="goodsCommentContents" placeholder="내용"><br><br>
+                    <button id="goodsCommentSave" class="shop_my_detail_top_btn mb-5"> 등록 </button> <br>
+                </div>
+
+                <div id="comment-area">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col">작성자</th>
+                            <th scope="col">내용</th>
+                            <th scope="col">작성시간</th>
+                            <th scope="col">댓글삭제</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="goodsComment: ${goodsCommentList}">
+                            <td th:text="${goodsComment.memberNickName}"> 작성자 </td>
+                            <td th:text="${goodsComment.goodsCommentContents}"> 내용 </td>
+                            <td th:text="${#temporals.format(goodsComment.getCreateTime(), 'MM-dd HH:mm')}"> 작성시간 </td>
+                            <td style="width: 20px" th:if="${session.LoginNumber.equals(goodsComment.memberId)}">
+                                <button class="comment_delete_btn" th:onclick="goodsCommentDelete([[${goodsComment.goodsCommentId}]])">X</button>
+<!--                                </div>-->
+                        </tr>
+                        </tbody>
+                    </table>
+
+                </div>
+            </div>
+<!--            <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">FAQ</div>-->
+        </div>
+
+    </div>
+
+
+
+<!--        <input type="number" id="countGoods">-->
+        <div class="menu">
+            <div class="dis_flex">
+                <div class="flex-grow-1 mg_lr_5">
+                    <p class="goods_count_label">수량</p>
+                </div>
+            </div>
+            <div class="dis_flex">
+                <div class="flex-grow-1 mg_lr_5">
+                    <div class="container goods_count_box">
+                        <button class="btn_num" id="decrement" onclick="stepper(this)"> - </button>
+                        <input type="number" min="0" max="100" step="1" value="1" id="count" name="count" class="count fs_24">
+                        <button class="btn_num" id="increment" onclick="stepper(this)"> + </button>
+                    </div>
+                </div>
+            </div>
+            <div class="dis_flex mt-5">
+                <div class="flex-grow-1 mg_lr_5">
+                    <button id="check_module" class="long_btn_3 signup_btn fs_16 fw_b" th:if="${goods.goodsStock>0}"> 구매하기 </button>
+                    <button class="long_btn_3 signup_btn fs_16 fw_b" th:if="${goods.goodsStock<=0}"> 품절 </button>
+                </div>
+                <div class="flex-grow-1 mg_lr_5">
+                    <img class="goods_like_btn" id="goodsLike" src="/image/star_default.png">
+                    <input type="hidden" id="like_check" th:value="${like}">
+                </div>
+            </div>
+
+            <!--    </div>-->
+        </div>
+
+        <div th:if="${session['LoginNumber'].equals(goods.memberId)}">
+            <div class="update_btn">
+                <a th:href="@{|/goods/update/${goods.goodsId}|}">
+                    <img class="update_btn_img" src="/image/wrench-adjustable-circle-fill.svg">
+                </a>
+            </div>
+            <div class="delete_btn" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                <img class="delete_btn_img" src="/image/x-circle-fill.svg">
+            </div>
+        </div>
+
+        <div class="write_btn" onclick="location.href='/goods/save'" th:if="${member.memberRole == 'ROLE_SELLER'}">
+            <img class="write_btn_img" src="/image/write.svg">
+        </div>
+        <div class="up_btn" onclick="location.href='#'">
+            <img class="up_btn_img" src="/image/up_btn.png" />
+        </div>
+
+        <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content p_30 bg_ef">
+                    <div class="modal-body fs_16 text_center fw_b">
+                        정말로 게시글을 삭제하시겠습니까?
+                    </div>
+                    <div class="modal-footer border_none modal_btn_box">
+                        <button type="button" class="btn btn-secondary flex-grow-1 bg_ccc logout_modal_btn logout_modal_btn_cancel" data-bs-dismiss="modal">취소</button>
+                        <button type="button" class="btn btn-primary flex-grow-1 bg_524A4E logout_modal_btn logout_modal_btn_okay" th:onclick="goodsDelete([[${goods.goodsId}]])">삭제하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${session.LoginRole.equals('ROLE_ADMIN')}">
+            <div class="up_btn" data-bs-toggle="modal" data-bs-target="#adminDeleteModal">
+                <img class="update_btn_img" src="/image/red-x.svg">
+            </div>
+        </div>
+
+        <div class="modal fade" id="adminDeleteModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content p_30 bg_ef">
+                    <div class="modal-body fs_16 text_center fw_b">
+                        정말로 게시글을 삭제하시겠습니까?
+                    </div>
+                    <div class="modal-footer border_none modal_btn_box">
+                        <button type="button" class="btn btn-secondary flex-grow-1 bg_ccc logout_modal_btn logout_modal_btn_cancel" data-bs-dismiss="modal">취소</button>
+                        <button type="button" class="btn btn-primary flex-grow-1 bg_524A4E logout_modal_btn logout_modal_btn_okay" th:onclick="adminGoodsDelete([[${goods.goodsId}]])">삭제하기</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+<!--        <div th:if="${session.LoginRole.equals('ROLE_ADMIN')}">-->
+<!--            <div class="admin_delete_btn" data-bs-toggle="modal" data-bs-target="#deleteModal">-->
+<!--                <img class="admin_delete_btn_img" src="/image/red-x.svg">-->
+<!--            </div>-->
+<!--        </div>-->
+
+        </div>
+</div>
+
+<!--<div class="pay">-->
+<!--    <h1>결제결과</h1>-->
+<!--    <form action="/goods/paySuccess" name="success" method="post">-->
+<!--        <input type="hidden" name="memberId" th:text="${session.LoginNumber}>">-->
+<!--        <input type="hidden" name="goodsId" th:text="${goods.goodsId}">-->
+<!--    </form>-->
+
+<!--</div>-->
+
+
+
+
+</body>
+
+
+
+
+
+<!--좋아요 스크립트-->
+<script>
+    const myInput = document.getElementById("count");
+    function stepper(btn){
+        let id = btn.getAttribute("id");
+        let min = myInput.getAttribute("min");
+        let max = myInput.getAttribute("max");
+        let step = myInput.getAttribute("step");
+        let val = myInput.getAttribute("value");
+        let calcStep = (id == "increment") ? (step*1) : (step * -1);
+        let newValue = parseInt(val) + calcStep;
+
+        if(newValue >= min && newValue <= max){
+             myInput.setAttribute("value", newValue);
+        }
+    }
+</script>
+<script>
+    $(document).ready(function () {
+        let likeVal = document.getElementById('like_check').value
+        const goodsId = document.getElementById("goodsId").value
+        const memberId = document.getElementById("memberId").value
+        const likeImg = document.getElementById("goodsLike")
+
+        if (likeVal > 0) {
+            likeImg.src = "/image/star.png";
+        } else {
+            likeImg.src = "/image/star_default.png";
+        }
+        // 좋아요 버튼을 클릭 시 실행되는 코드
+        likeImg.addEventListener("click", function () {
+            $.ajax({
+                url: '/goods/goodsLike',
+                type: 'POST',
+                data: {'goodsId': goodsId, 'memberId': memberId},
+                success: function (data) {
+                    if (data == 1) {
+                        $("#likeImg").attr("src", "/image/star.png");
+                        // location.href="/board/"+boardId;
+                        location.reload()
+
+                    } else {
+                        $("#likeImg").attr("src", "/image/star_default.png");
+                        // location.href="/board/"+boardId;
+                        location.reload()
+                    }
+                }, error: function () {
+                    console.log('오타 찾으세요')
+                }
+
+            });
+
+        });
+    });
+
+    function goodsDelete(goodsId) {
+        $.ajax({
+            type: "delete",
+            url: "/goods/"+goodsId,
+            success: function () {
+                alert("삭제되었습니다.")
+                location.href="/goods/"
+            },
+            error: function () {
+                console.log("ajax 오류")
+            }
+        })
+    }
+
+    function goodsUpdate(goodsId) {
+        location.href="/goods/update/"+goodsId
+    }
+
+    // 댓글작성
+    const goodsComment = document.getElementById("goodsCommentSave")
+    goodsComment.addEventListener("click", function () {
+        let goodsCommentContents = document.getElementById("goodsCommentContents").value
+        let goodsId = document.getElementById("goodsId").value
+        let memberId = document.getElementById("memberId").value
+        if (!goodsCommentContents) {
+            alert("리뷰를 입력해주세요")
+        } else {
+
+            $.ajax({
+                type: "post",
+                url: "/goodsComment/save",
+                data: {
+                    "memberId": memberId,
+                    "goodsId": goodsId,
+                    "goodsCommentContents": goodsCommentContents
+                },
+                dataType: "json",
+                success: function (result) {
+                    alert("작성 완료!")
+                    location.reload()
+                },
+                error:function (result) {
+                    alert("작성실패!")
+                }
+            })
+        }
+    })
+
+    //    댓글삭제 기능
+    const goodsCommentDelete = (goodsCommentId) => {
+        const reqUrl = "/goodsComment/" + goodsCommentId
+        $.ajax({
+            type : "delete",
+            url : reqUrl,
+            success: function () {
+                alert ("리뷰 삭제 완료")
+                location.reload()
+            },
+            error: function() {
+                alert ("삭제 실패")
+            }
+        })
+    }
+
+</script>
+
+
+
+<script th:inline="javascript">
+
+    /*<![CDATA[*/
+    let goodsInfo = /*[[${goods}]]*/
+        /*]]*/
+
+
+
+
+        // const price = document.getElementById("price").value
+        // console.log(price)
+
+        console.log(goodsInfo)
+
+    $("#check_module").click(function () {
+
+        const goodsId= "[[${goods.goodsId}]]";
+        console.log(goodsId);
+        const stock= "[[${goods.goodsStock}]]";
+        console.log(stock);
+        const count = document.getElementById('count').value;
+        console.log(count);
+        const memberId = document.getElementById("memberId").value
+        const countStock=stock-count;
+
+        if(countStock>=0) {
+            const IMP = window.IMP; // 생략가능
+            IMP.init('imp59250378');
+            // i'mport 관리자 페이지 -> 내정보 -> 가맹점식별코드
+            // ''안에 띄어쓰기 없이 가맹점 식별코드를 붙여넣어주세요. 안그러면 결제창이 안뜹니다.
+            IMP.request_pay({
+                    pg: 'kakao',
+                    pay_method: 'card',
+                    merchant_uid: 'merchant_' + new Date().getTime(),
+                    /*
+             *  merchant_uid에 경우
+             *  https://docs.iamport.kr/implementation/payment
+             *  위에 url에 따라가시면 넣을 수 있는 방법이 있습니다.
+             */
+                    name: '주문명 : ' + goodsInfo.goodsTitle,
+                    // 결제창에서 보여질 이름
+                    // name: '주문명 : ${auction.a_title}',
+                    // 위와같이 model에 담은 정보를 넣어 쓸수도 있습니다.
+                    amount: goodsInfo.goodsPrice * count,
+                    // amount: ${bid.b_bid},
+                    // 가격
+                    buyer_name: 'memberNickname',
+                    // 구매자 이름, 구매자 정보도 model값으로 바꿀 수 있습니다.
+                    // 구매자 정보에 여러가지도 있으므로, 자세한 내용은 맨 위 링크를 참고해주세요.
+                    buyer_postcode: '123-456',
+                },
+                function (rsp) {
+                    console.log(rsp);
+                    if (rsp.success) {
+                        let msg = '결제가 완료되었습니다.';
+                        msg += '결제 금액 : ' + rsp.paid_amount;
+                        alert(msg);
+                        // success.submit();
+                        // 결제 성공 시 정보를 넘겨줘야한다면 body에 form을 만든 뒤 위의 코드를 사용하는 방법이 있습니다.
+                        // 자세한 설명은 구글링으로 보시는게 좋습니다.
+                        $.ajax({
+                            type: 'post',
+                            url: '/goods/pay',
+                            data: {
+                                "count": count,
+                                "goodsId": goodsId,
+                                "memberId": memberId
+                            },
+                            success: function () {
+                                location.href="/goods/paySuccess/"+goodsId;
+                            },
+                            error: function () {
+                                console.log("ajax 오류")
+                            }
+                        });
+                    } else {
+                        let msg = '결제에 실패하였습니다.';
+                        msg += '에러내용 : ' + rsp.error_msg;
+                        alert(msg)
+                    }
+
+                });
+        }
+        else {
+            alert("재고가 부족합니다.")
+        }
+    });
+
+
+    function modalLogout() {
+        location.href='/logout'
+    }
+</script>
+
+
+</html>

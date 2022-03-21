@@ -1,0 +1,67 @@
+.board_save_box {
+    background-color: #f9f6f8;
+    padding: 60px 40px;
+}
+.board_save_contents_name {
+    width: 80px;
+    text-align: right;
+    padding-right: 20px;
+    font-size: 14px;
+    display: table-cell;
+}
+.board_save_contents_input {
+    width: 100%;
+    font-size: 14px;
+    resize: none;
+    border-radius: 4px;
+}
+.idCheck_box {
+    width: 100%;
+    height: 30px;
+    margin-bottom: 15px;
+}
+.idCheck_label {
+    width: 80px;
+    height: 30px;
+    text-align: right;
+    padding-right: 15px;
+}
+.idCheck_input {
+    width: 300px;
+    height: 30px;
+    border-radius: 4px;
+}
+.idCheck_btn_box {
+    width: 135px;
+    height: 30px;
+    text-align: left;
+}
+.idCheck_btn {
+    height: 100%;
+    border-radius: 4px;
+    padding:5px 15px;
+}
+.idCheck_btn:hover {
+    background-color: #bbbbbb;
+}
+.idCheck_btn_2:hover {
+    background-color: #524A4E;
+    color: #fff;
+    font-weight: bold;
+}
+.memberUpdate_save_btn {
+    width: 100%;
+    height: 40px;
+    font-size: 16px;
+    font-weight: bold;
+    background-color: #FF5C8D;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    box-shadow: 0px 0px 5px #FFC0D3;
+    margin-top: 30px;
+}
+.memberUpdate_save_btn:hover {
+    background-color: #524A4E;
+    box-shadow: 0px 0px 5px #a0939a;
+}

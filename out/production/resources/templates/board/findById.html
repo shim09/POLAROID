@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link href="/css/reset.css" rel="stylesheet" type="text/css">
+    <link href="/css/common.css" rel="stylesheet" type="text/css">
+    <link href="/css/board_detail.css" rel="stylesheet" type="text/css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="/js/common.js"></script>
+    <title>POLAROID</title>
+    <style>
+        body {
+            background-color: #f9f6f8;
+        }
+    </style>
+</head>
+<body>
+<!-- header -->
+<div class="header">
+    <div class="max_box_2 vertical_box">
+        <div class="header_logo vertical_mid">
+            <img class="header_logo_img" src="/image/logo_white.png" onclick="location.href='/'" />
+        </div>
+        <div class="header_search_box vertical_mid">
+            <input class="header_search_input fs_16" id="keyword" type="text" placeholder="Search" />
+            <div class="header_search_btn">
+                <button onclick="tagSearch()">
+                    <img class="header_search_btn_img" src="/image/search.png"/>
+                </button>
+            </div>
+        </div>
+        <div class="header_right vertical_mid" >
+            <div class="dis_flex header_right_box" th:if="${session['LoginEmail']} != null">
+                <!-- 채팅 -->
+                <div class="header_chat_box flex-grow-1">
+                    <div class="header_chat ">
+                        <img class="far fa-envelope icon-badge-icon header_chat_img" src="/image/chat.png" onclick="location.href='/chat'"/>
+                        <div class="icon-badge" th:if="${member.memberMessage>0}"><p th:text="${member.memberMessage}"> </p></div>
+                    </div>
+                </div>
+                <!-- 좋아요 모아보기 -->
+                <div class="header_like flex-grow-1">
+                    <img class="header_like_img" src="/image/like.png" onclick="location.href='/member/likeListShow'"/>
+                </div>
+                <!-- 사용자 정보 -->
+                <div class="header_user flex-grow-1" id="userToggleButton">
+                    <img class="header_user_img" th:src="@{|/profile/${member.memberFilename}|}"/>
+                </div>
+            </div>
+            <div class="header_user_toggle_box" id="userToggleMenu">
+                <input class="header_user_toggle_btn fs_14" type="button" value="마이페이지" onclick="location.href='/member/mypage'"/>
+                <input class="header_user_toggle_btn fs_14" type="button" value="SNS" onclick="location.href='/board/'"/>
+                <input class="header_user_toggle_btn fs_14" type="button" value="결제리스트" onclick="location.href='/goods/payList'"/>
+                <input class="header_user_toggle_btn fs_14" type="button" value="내 쇼핑몰" th:onclick="'location.href=\''+ @{|/goods/list/${session.LoginNumber}|} + '\''"/>
+                <button type="button" class="header_user_toggle_btn fs_14" id="show" data-bs-toggle="modal" data-bs-target="#exampleModal">로그아웃</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 로그아웃 모달창 -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content p_30 bg_ef">
+            <div class="modal-body fs_16 text_center fw_b">
+                로그아웃 하시겠습니까?
+            </div>
+            <div class="modal-footer border_none modal_btn_box">
+                <button type="button" class="btn btn-secondary flex-grow-1 bg_ccc logout_modal_btn logout_modal_btn_cancel" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-primary flex-grow-1 bg_524A4E logout_modal_btn logout_modal_btn_okay" onclick="modalLogout()">로그아웃</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 로그아웃 모달창 -->
+
+<!-- header -->
+
+
+<div class="contents">
+    <div class="max_box_3 pt_60">
+        <div class="board_detail_box">
+            <div class="board_detail_top vertical_box">
+                <div class="vertical_mid board_detail_user">
+                    <img class="board_detail_user_img" src="/image/user_default.png"/>
+                    <!--                    <img class="board_detail_user_img" src="/image/user_default.png" th:if="${board.memberFilename == null}"/>-->
+                </div>
+                <div class="vertical_mid">
+                    <label class="board_detail_name" th:text="${board.memberNickname}"></label>
+                </div>
+            </div>
+
+            <div class="board_detail_img_box">
+                <input type="radio" name="pos" id="pos1" checked>
+                <input type="radio" name="pos" id="pos2" th:if="${imageSize >= 2}">
+                <input type="radio" name="pos" id="pos3" th:if="${imageSize >= 3}">
+                <input type="radio" name="pos" id="pos4" th:if="${imageSize >= 4}">
+                <input type="radio" name="pos" id="pos5" th:if="${imageSize >= 5}">
+                <ul>
+                    <li th:each="image: ${board.getPhoto()}">
+                        <img class="board_detail_img" th:src="@{|/upload/${image.boardFilename}|}" />
+                    </li>
+                </ul>
+                <p class="bullet">
+                    <label for="pos1">1</label>
+                    <label for="pos2" th:if="${imageSize >= 2}">2</label>
+                    <label for="pos3" th:if="${imageSize >= 3}">3</label>
+                    <label for="pos4" th:if="${imageSize >= 4}">4</label>
+                    <label for="pos5" th:if="${imageSize >= 5}">5</label>
+                </p>
+            </div>
+
+            <div class="board_detail_contents_box">
+                <!-- board detail contents 1 -->
+                <div class="board_detail_contents_1">
+                    <div class="dis_inblock mr_15">
+                        <!--                        <img class="board_detail_contents_1_like_img" onclick="likeCheck()" id="board-detail-like-btn" src="/image/like_default.png" />-->
+                        <img class="board_detail_contents_1_like_img" id="board-detail-like-btn" src="/image/like_default.png" />
+                        <label class="fs_14 pt_2"><span th:text="${board.boardLikeCount}"></span></label>
+                        <input type="hidden" id="like_check" th:value="${like}">
+                    </div>
+                    <div class="dis_inblock">
+                        <img class="board_detail_contents_1_comment_img" onclick="commentCheck()" id="board-detail-comment-btn" src="/image/comment_default.png" />
+                    </div>
+                    <div class="dis_inblock board_detail_contents_1_date_time">
+                        <label class="fs_14 color_999" th:if="${board.getUpdateTime() == null}"><span th:text="${#temporals.format(board.getCreateTime(), 'yyyy-MM-dd HH:mm')}"></span></label>
+                        <label class="fs_14 color_999" th:if="${board.updateTime != null}"><span th:text="${#temporals.format(board.getUpdateTime(), 'yyyy-MM-dd HH:mm')}"></span></label>
+                    </div>
+                </div>
+                <!-- board detail content 1 -->
+
+                <!-- board detail content 2 -->
+                <div class="board_detail_contents_2">
+                    <p class="board_detail_contents_2_main_text fs_14" onclick="viewMore()" id="board-main-text">
+                        <input type="hidden" id="boardContents" th:value="${board.boardContents}">
+                        <span id="contentElement"></span>
+                    </p>
+                    <p class="board_detail_contents_2_tag color_666 fs_12">
+                        <!--                        #tag-->
+                    </p>
+                </div>
+                <!-- board detail content 2 -->
+
+                <!-- board detail content 3 -->
+                <div class="board_detail_contents_3" id="board-detail-comment_box">
+                    <div class="board_detail_contents_3_comment_1">
+                        <input type="hidden" id="boardId" name="boardId" th:value="${board.boardId}">
+                        <input type="hidden" id="memberId" name="memberId" th:value="${session.LoginNumber}" />
+                        <input class="board_detail_contents_3_comment_1_input fs_14" id="commentContents" type="text" placeholder="댓글 작성" value=""/>
+                        <input class="board_detail_contents_3_comment_1_btn input_btn fs_14" type="button" id="commentSave" value="등록" />
+                    </div>
+                    <div class="board_detail_contents_3_comment_2" id="comment">
+                        <!-- 댓글 목록 예시 -->
+                        <table>
+                            <tbody>
+                            <tr th:each="comment: ${commentList}">
+                                <td class="comment_name" th:text="${comment.memberNickname}"></td>
+                                <td class="comment_text" th:text="${comment.getCommentContents()}"></td>
+                                <td class="comment_date" th:text="${#temporals.format(comment.getCreateTime(), 'MM-dd HH:mm')}"></td>
+                                <!--                                <button class="comment_delete_btn" th:if="${comment.memberEmail.equals(session['LoginEmail'])}">X</button>-->
+                                <td style="width: 20px" th:if="${session['LoginEmail'].equals(comment.memberEmail)}">
+                                    <button class="comment_delete_btn" th:onclick="commentDelete([[${comment.commentId}]])">X</button>
+                                </td>
+                            </tr>
+                            <!--                            <tr>-->
+                            <!--                                <td class="comment_name">밥</td>-->
+                            <!--                                <td class="comment_text">떡볶이, 곱창, 치킨, 피자, 회, 냉면, 삼겹살, 파스타, 닭발, 쭈꾸미, 햄버거, 감자튀김, 돈까스, 짬뽕, 족발, 보쌈, 튀김, 모밀, 라멘, 초밥, 우동</td>-->
+                            <!--                                <td class="comment_date">2022-02-21 13:31</td>-->
+                            <!--                                <td class="comment_delete_btn"></td>-->
+                            <!--                            </tr>-->
+                            <!--                            <tr>-->
+                            <!--                                <td class="comment_name">loginName</td>-->
+                            <!--                                <td class="comment_text">본인이 작성한 댓글만 삭제 가능</td>-->
+                            <!--                                <td class="comment_date">2022-02-21 10:22</td>-->
+                            <!--                                <td class="comment_delete_btn">X</td>-->
+                            <!--                            </tr>-->
+                            <!--                            <tr>-->
+                            <!--                                <td class="comment_name">왕꿈트리</td>-->
+                            <!--                                <td class="comment_text">로 아 들 어 와</td>-->
+                            <!--                                <td class="comment_date">2022-02-21 09:04</td>-->
+                            <!--                                <td class="comment_delete_btn"></td>-->
+                            <!--                            </tr>-->
+                            </tbody>
+                        </table>
+                        <!-- 댓글 목록 예시 -->
+                    </div>
+                </div>
+                <!-- board detail content 3 -->
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 맨 위로 가기 버튼 -->
+<div th:if="${session['LoginEmail'].equals(board.memberEmail)}">
+    <div class="update_btn">
+        <a th:href="@{|/board/update/${board.boardId}|}">
+            <img class="update_btn_img" src="/image/wrench-adjustable-circle-fill.svg">
+        </a>
+    </div>
+    <div class="delete_btn" data-bs-toggle="modal" data-bs-target="#deleteModal">
+        <img class="delete_btn_img" src="/image/x-circle-fill.svg">
+    </div>
+</div>
+<div class="write_btn" onclick="location.href='/board/save'">
+    <img class="write_btn_img" src="/image/write.svg">
+</div>
+<div class="up_btn" onclick="location.href='#'">
+    <img class="up_btn_img" src="/image/up_btn.png" />
+</div>
+<div th:if="${session.LoginRole.equals('ROLE_ADMIN')}">
+    <div class="admin_delete_btn" data-bs-toggle="modal" data-bs-target="#adminDeleteModal">
+        <img class="admin_delete_btn_img" src="/image/red-x.svg">
+    </div>
+</div>
+
+<div class="modal fade" id="adminDeleteModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content p_30 bg_ef">
+            <div class="modal-body fs_16 text_center fw_b">
+                정말로 게시글을 삭제하시겠습니까?
+            </div>
+            <div class="modal-footer border_none modal_btn_box">
+                <button type="button" class="btn btn-secondary flex-grow-1 bg_ccc logout_modal_btn logout_modal_btn_cancel" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-primary flex-grow-1 bg_524A4E logout_modal_btn logout_modal_btn_okay" th:onclick="adminBoardDelete([[${board.boardId}]])">삭제하기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content p_30 bg_ef">
+            <div class="modal-body fs_16 text_center fw_b">
+                정말로 게시글을 삭제하시겠습니까?
+            </div>
+            <div class="modal-footer border_none modal_btn_box">
+                <button type="button" class="btn btn-secondary flex-grow-1 bg_ccc logout_modal_btn logout_modal_btn_cancel" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-primary flex-grow-1 bg_524A4E logout_modal_btn logout_modal_btn_okay" th:onclick="boardDelete([[${board.boardId}]])">삭제하기</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+<script>
+    let content = document.getElementById("boardContents").value
+    let splitedArray = content.split(' ');
+    let linkedContent = '';
+    for (let word in splitedArray) {
+        word = splitedArray[word];
+        if (word.indexOf('#') == 0) {
+            let reqUrl = "/board/search/"+word.replace('#',"")
+            word = '<a href="'+reqUrl+'">' + word + '</a>';
+        }
+        linkedContent += word + ' ';
+    }
+    document.getElementById('contentElement').innerHTML = linkedContent;
+
+    const comment = document.getElementById("commentSave")
+    comment.addEventListener("click", function () {
+        let commentContents = document.getElementById("commentContents").value
+        let boardId = document.getElementById("boardId").value
+        let memberId = document.getElementById("memberId").value
+        if (!commentContents) {
+            alert("내용을 입력해주세요.")
+        } else {
+            $.ajax({
+                type: "post",
+                url: "/comment/save",
+                data: {
+                    "memberId": memberId,
+                    "boardId": boardId,
+                    "commentContents": commentContents
+                },
+                dataType: "json",
+                success: function (result) {
+                    // console.log(result)
+                    // let output = ""
+                    // output += "<table>"
+                    // output += "<tbody>"
+                    // result.forEach(function (commentList) {
+                    //     output += "<tr>"
+                    //     output += "<td class='comment_name'>"+commentList.memberNickname +"</td>"
+                    //     output += "<td class='comment_text'>"+commentList.commentContents+"</td>"
+                    //     output += "<td class='comment_date'>"+commentList.createTime+"</td>"
+                    //     output += "<button class='comment_delete_btn'></button>"
+                    //     output += "</tr>"
+                    // })
+                    // output += "</tbody>"
+                    // output += "</table>"
+                    // let comment = document.getElementById("comment")
+                    // comment.innerHTML = output
+
+                    alert("댓글작성이 완료되었습니다.")
+                    location.reload()
+
+                },
+                error: function (result) {
+                    alert("ajax 실페")
+                }
+            })
+
+        }
+    })
+
+    const commentDelete = (commentId) => {
+        const reqUrl = "/comment/" + commentId
+        $.ajax({
+            type: "delete",
+            url: reqUrl,
+            success: function () {
+                alert("댓글삭제가 완료되었습니다.")
+                location.reload()
+            },
+            error: function () {
+                alert("ajax 실패")
+            }
+        })
+    }
+
+    $(document).ready(function () {
+        let likeVal = document.getElementById('like_check').value
+        const boardId = document.getElementById("boardId").value
+        const memberId = document.getElementById("memberId").value
+        // console.log(memberId);
+        // console.log(likeVal);
+        const likeImg = document.getElementById("board-detail-like-btn")
+
+        if (likeVal > 0) {
+            likeImg.src = "/image/like.png";
+        } else {
+            likeImg.src = "/image/like_default.png";
+        }
+        // 좋아요 버튼을 클릭 시 실행되는 코드
+        likeImg.addEventListener("click", function () {
+            $.ajax({
+                url: '/board/like',
+                type: 'POST',
+                data: {'boardId': boardId, 'memberId': memberId},
+                success: function (data) {
+                    if (data == 1) {
+                        $("#likeImg").attr("src", "/image/like.png");
+                        // location.href="/board/"+boardId;
+                        location.reload()
+
+                    } else {
+                        $("#likeImg").attr("src", "/image/like_default.png");
+                        // location.href="/board/"+boardId;
+                        location.reload()
+                    }
+                }, error: function () {
+                    console.log('오타 찾으세요')
+                }
+
+            });
+
+        });
+    });
+
+    function boardDelete(boardId) {
+        $.ajax({
+            type:"delete",
+            data: boardId,
+            url: "/board/"+boardId,
+            success: function () {
+                alert("삭제가 완료되었습니다.")
+                location.href="/board/"
+            },
+            error: function () {
+                alert("ajax 오류")
+            }
+        })
+    }
+
+    function adminBoardDelete(boardId) {
+        $.ajax({
+            type:"delete",
+            data: boardId,
+            url: "/admin/board/"+boardId,
+            success: function () {
+                location.href="/admin/boardList"
+            },
+            error: function () {
+                alert("ajax 오류")
+            }
+        })
+    }
+    function tagSearch() {
+        let keyword = document.getElementById("keyword").value
+        location.href = "/board/search/" + keyword.replace("#", "")
+    }
+    function modalLogout() {
+        location.href='/logout'
+    }
+</script>
+
+</html>

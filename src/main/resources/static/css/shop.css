@@ -1,0 +1,12 @@
+.shop_title {
+    text-align: center;
+    margin-bottom: 60px;
+}
+.shop_title_name, .shop_title_text {
+    font-size: 25px;
+    font-weight: bold;
+    display: inline-block;
+}
+.shop_title_name {
+    margin-right: 5px;
+}

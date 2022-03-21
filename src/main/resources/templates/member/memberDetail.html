@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <link href="/css/reset.css" rel="stylesheet" type="text/css">
+    <link href="/css/common.css" rel="stylesheet" type="text/css">
+    <link href="/css/my_page.css" rel="stylesheet" type="text/css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="/js/common.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.4.0/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <title>POLAROID</title>
+    <style>
+        body {
+            background-color: #f9f6f8;
+        }
+        .chatting_btn:hover {
+            box-shadow: #bbbbbb;
+        }
+    </style>
+</head>
+<script>
+
+    function follow(){
+        const my= "[[${myId}]]";
+        const your= "[[${member.id}]]";
+        if(my != -1) {
+            $.ajax({
+                type: 'post',
+                url: '/member/followAdd',
+                data: {"myId": my, "yourId": your},
+                success: function (result) {
+                    alert(result);
+                    location.reload()
+                },
+                error: function () {
+                    alert("오류")
+                }
+
+            });
+        }
+        else
+            alert("로그인 후 이용 가능합니다")
+    }
+
+    function followCancel(){
+        const my= "[[${myId}]]";
+        const your= "[[${member.id}]]";
+        $.ajax({
+            type: 'post',
+            url:'/member/followCancel',
+            data:{"myId" : my,"yourId" : your},
+            success : function (result){
+                alert(result);
+                location.reload()
+            },
+            error : function (){
+                alert("오류")
+            }
+
+        });
+    }
+
+    function chatting(){
+        const my= "[[${myId}]]";
+        if(my == -1)
+            alert("로그인 후 이용 가능합니다");
+        else
+            chattingForm.submit();
+    }
+
+</script>
+<body>
+
+<!-- header -->
+<div class="header">
+    <div class="max_box_2 vertical_box">
+        <div class="header_logo vertical_mid">
+            <img class="header_logo_img" src="/image/logo_white.png" onclick="location.href='/'" />
+        </div>
+        <div class="header_search_box vertical_mid">
+            <input class="header_search_input fs_16" id="keyword" type="text" placeholder="Search" />
+            <div class="header_search_btn">
+                <button onclick="tagSearch()">
+                    <img class="header_search_btn_img" src="/image/search.png"/>
+                </button>
+            </div>
+        </div>
+        <div class="header_right vertical_mid" >
+            <div class="dis_flex header_right_box" th:if="${session['LoginEmail']} != null">
+                <!-- 채팅 -->
+                <div class="header_chat_box flex-grow-1">
+                    <div class="header_chat ">
+                        <img class="far fa-envelope icon-badge-icon header_chat_img" src="/image/chat.png" onclick="location.href='/chat'"/>
+                        <div class="icon-badge" th:if="${myMember.memberMessage>0}"><p th:text="${myMember.memberMessage}"> </p></div>
+                    </div>
+                </div>
+                <!-- 좋아요 모아보기 -->
+                <div class="header_like flex-grow-1">
+                    <img class="header_like_img" src="/image/like.png" onclick="location.href='/member/likeListShow'"/>
+                </div>
+                <!-- 사용자 정보 -->
+                <div class="header_user flex-grow-1" id="userToggleButton">
+                    <img class="header_user_img" th:src="@{|/profile/${myMember.memberFilename}|}"/>
+                </div>
+            </div>
+            <div class="header_user_toggle_box" id="userToggleMenu">
+                <input class="header_user_toggle_btn fs_14" type="button" value="마이페이지" onclick="location.href='/member/mypage'"/>
+                <input class="header_user_toggle_btn fs_14" type="button" value="SNS" onclick="location.href='/board/'"/>
+                <input class="header_user_toggle_btn fs_14" type="button" value="결제리스트" onclick="location.href='/goods/payList'"/>
+                <input class="header_user_toggle_btn fs_14" type="button" value="내 쇼핑몰" th:if="${myMember.memberRole == 'ROLE_SELLER'}" th:onclick="'location.href=\''+ @{|/goods/list/${session.LoginNumber}|} + '\''"/>
+                <button type="button" class="header_user_toggle_btn fs_14" id="show" data-bs-toggle="modal" data-bs-target="#exampleModal">로그아웃</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 로그아웃 모달창 -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content p_30 bg_ef">
+            <div class="modal-body fs_16 text_center fw_b">
+                로그아웃 하시겠습니까?
+            </div>
+            <div class="modal-footer border_none modal_btn_box">
+                <button type="button" class="btn btn-secondary flex-grow-1 bg_ccc logout_modal_btn logout_modal_btn_cancel" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-primary flex-grow-1 bg_524A4E logout_modal_btn logout_modal_btn_okay" onclick="modalLogout()">로그아웃</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 로그아웃 모달창 -->
+
+<!-- header -->
+
+
+<div class="contents">
+    <div class="max_box_3 pt_60">
+        <div class="my_page_box">
+            <!-- top box start -->
+            <div class="my_page_top_box">
+                <div class="dis_flex">
+                    <!-- 1. user(img, name) -->
+                    <div class="my_page_top_1">
+                        <div class="my_page_top_1_user_img_box">
+                            <img class="my_page_top_1_user_img" th:src="@{|/profile/${member.memberFilename}|}" />
+                        </div>
+                        <div class="my_page_top_1_user_box">
+                            <span class="my_page_top_1_user_name" th:text="${member.memberNickname}"></span>
+                            <!-- 판매자 표시 시작 -->
+                            <img class="my_page_top_1_user_seller" th:if="${member.memberRole=='ROLE_SELLER'}" src="/image/seller.png" />
+                            <!-- 판매자 표시 끝 -->
+                        </div>
+                    </div>
+
+                    <!-- 2. follow 등등 -->
+                    <div class="my_page_top_2">
+                        <div class="my_page_top_2_box text_center" onclick="followerView()">
+                            <p class="fs_14 my_page_top_2_box_top">팔로워</p>
+                            <p class="fs_24 fw_b my_page_top_2_box_bottom" th:text="${follower}"></p>
+                        </div>
+                        <div class="my_page_top_2_box text_center" onclick="followingView()">
+                            <p class="fs_14 my_page_top_2_box_top">팔로잉</p>
+                            <p class="fs_24 fw_b my_page_top_2_box_bottom" th:text="${following}"></p>
+                        </div>
+                        <div class="my_page_top_2_box text_center" onclick="boardView()">
+                            <p class="fs_14 my_page_top_2_box_top">게시물</p>
+                            <p class="fs_24 fw_b my_page_top_2_box_bottom" th:text="${boardCount}"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dis_flex text_center mt_30">
+                    <div class="my_page_top_3">
+                        <input class="my_page_top_3_btn" type="button" value="팔로우"  th:if="${followButton==1}" onclick="follow()" />
+                        <input class="my_page_top_3_btn" type="button" value="팔로우 취소" th:if="${followButton==0}" onclick="followCancel()" />
+                    </div>
+<!--                    <form class = "form-signing" id="chattingForm" action = "/chat/newChat" method = "POST" onsubmit = "return nameChk();">-->
+<!--                        <input type="hidden" id = "receiver" th:value="${member.memberNickname}" name= "receiver">-->
+<!--                        <input type="hidden" id = "sender" th:value = "${myNickname}" name= "sender">-->
+<!--                    <div class="my_page_top_3">-->
+<!--                        <input type="button" class="my_page_top_3_btn"  id="pick-btn" value="채팅" onclick="chatting()">-->
+<!--                    </div>-->
+<!--                    </form>-->
+                    <div class="my_page_top_3">
+                        <button class="chatting_btn" type="button">
+                            <a style="color: black;" th:href = "@{/personalChat/{id} (id = ${chatId})}" onclick="window.open(this.href, '_blank', 'width=500, height=400, toolbars=no, menubar=no,scrollbars=no'); return false;">채팅</a>
+                        </button>
+                    </div>
+                    <div class="my_page_top_3">
+                        <input class="my_page_top_3_btn" type="button" value="상점" th:if="${member.memberRole=='ROLE_SELLER'}" th:onclick="'location.href=\''+ @{|/goods/list/${member.id}|} + '\''"/>
+                    </div>
+                </div>
+            </div>
+            <!-- top box end -->
+
+            <!-- 게시물 모아보기 -->
+            <div class="my_page_bottom_board_box" id="board-list">
+                <table class="main_board_box">
+                    <tr class="d-flex flex-wrap">
+                        <td class="main_board" th:each="board: ${boardList}">
+                            <a th:href="@{|/board/${board.boardId}|}">
+                                <img class="main_board_img" th:src="@{|/upload/${board.getPhoto().get(0).getBoardFilename()}|}"/>
+                            </a>
+                        </td>
+                        <td class="main_board" th:if="${boardCount %3==1}">
+                            <img  src='/image/dummy_img.png' />
+                        </td>
+                        <td class="main_board" th:if="${boardCount %3==1}">
+                            <img src='/image/dummy_img.png' />
+                        </td>
+                        <td class="main_board" th:if="${boardCount %3==2}">
+                            <img  src='/image/dummy_img.png' />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <!-- 게시물 모아보기 -->
+
+            <!-- 팔로워 리스트 -->
+            <div class="my_page_bottom_list_box" id="follower-list">
+                <div class="my_page_bottom_list_title_box">
+                    <p class="my_page_bottom_list_title">팔로워</p>
+                </div>
+                <div class="my_page_bottom_list_contents_box vertical_box" th:each="followerList: ${followerList}">
+<!--                    <th:block th:each="followerList: ${followerList}">-->
+                    <a th:href="@{|/memberDetail/${followerList.followMy.id}|}">
+                        <img class="my_page_bottom_list_contents_img vertical_mid" th:src="@{|/profile/${followerList.followMy.memberFilename}|}"  />
+                    </a>
+                    <lable class="my_page_bottom_list_contents_name fs_16 vertical_mid">
+                        <p th:text="${followerList.followMy.memberNickname}"></p>
+                    </lable>
+<!--                    </th:block>-->
+                </div>
+            </div>
+            <!-- 팔로워 리스트 -->
+
+            <!-- 팔로잉 리스트 -->
+            <div class="my_page_bottom_list_box" id="following-list">
+                <div class="my_page_bottom_list_title_box">
+                    <p class="my_page_bottom_list_title">팔로잉</p>
+                </div>
+                <div class="my_page_bottom_list_contents_box vertical_box" th:each="followingList: ${followingList}">
+<!--                    <th:block th:each="followingList: ${followingList}">-->
+                    <a th:href="@{|/memberDetail/${followingList.followYour.id}|}">
+                        <img class="my_page_bottom_list_contents_img vertical_mid" th:src="@{|/profile/${followingList.followYour.memberFilename}|}" />
+                    </a>
+                    <lable class="my_page_bottom_list_contents_name fs_16 vertical_mid">
+                        <p th:text="${followingList.followYour.memberNickname}"></p>
+                    </lable>
+<!--                    </th:block>-->
+                </div>
+            </div>
+            <!-- 팔로잉 리스트 -->
+        </div>
+    </div>
+</div>
+<!-- 맨 위로 가기 버튼 -->
+<div class="up_btn" onclick="location.href='#'">
+    <img class="up_btn_img" src="/image/up_btn.png" />
+</div>
+<!-- 맨 위로 가기 버튼 -->
+
+
+
+</body>
+<th:block layout:fragment="script">
+    <script th:inline = "javascript">
+        /* <![CDATA[*/
+        var id = /*[[${userId}]]*/;
+        /* ]]> */
+        function mypage(){
+            if(id == 0){
+                alert("로그인 후 이용해주세요");
+            }
+            else{
+                window.location.href = "/users/myPage/" + id;
+            }
+        }
+        /* <![CDATA[*/
+        var nickname = /*[[${nickname}]]*/;
+        /* ]]> */
+        var stompClient = null;
+        connect();
+        function connect() {
+            var socket = new SockJS('/chat');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function () {
+                stompClient.subscribe('/topic/' + nickname, function (e) {
+                    if(e.body.toString() == "notice"){
+                        alertClosing('noticeCome',2000);
+                    }
+                    else{
+                        alertClosing('comeMessage',2000);
+                    }
+                });
+            });
+        }
+
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+            }
+        }
+        window.onbeforeunload = function(e){
+            disconnect();
+        }
+
+        function alertClosing(selector, delay){
+            document.getElementById(selector).style.display = "block";
+            window.setTimeout(function(){
+                document.getElementById(selector).style.display = "none";
+            },delay);
+        }
+        function logout(){
+            $("#pop").modal();
+            document.getElementById("y").onclick = function(){
+                window.location.href="/logout";
+            }
+            document.getElementById("n").onclick = function(){
+                $("#pop").modal("hide");
+            }
+        }
+        $(function(){
+            $("#receiver").autocomplete({
+                source : "autocomplete",
+                autoFocus : true,
+                delay : 100,
+                select: function( event, ui ) {
+                    // 만약 검색리스트에서 선택하였을때 선택한 데이터에 의한 이벤트발생
+                    this.value = ui.item.value;
+                    $("#receiver").val(ui.item.value);
+                    return false;
+                }
+            });
+        })
+        function nameChk(){
+            var flag = false;
+            $.ajax({
+                type:'GET',
+                url: '/users/nameChk/' + $("#receiver").val(),
+                contentType: 'application/json; charset=utf-8',
+                async: false
+            }).done(function(e){
+                if(e == "success"){
+                    console.log(e);
+                    flag = true;
+                }
+                else {
+                    flag = false;
+                    alertClosing("nameMessage",2000);
+                }
+            }).fail(function(e){
+                flag = false;
+                alertClosing("failMessage",2000);
+            })
+            return flag;
+        }
+        function notice(){
+            if(nickname == ""){
+                noticeList = document.getElementById("noticeList");
+                noticeList.innerHTML = "";
+            }
+            else {
+                $.ajax({
+                    type:'GET',
+                    url: '/users/notice',
+                    data : {name : nickname},
+                    dataType : 'json',
+                    contentType: 'application/json; charset=utf-8',
+                }).done(function(e){
+                    console.log(e);
+                    noticeList = document.getElementById("noticeList");
+                    noticeList.innerHTML = "";
+                    for(var i= 0; i< e.link.length;++i){
+                        noticeList.innerHTML = "<li><strong>" + e.content[i] + "</strong><br><small>" + dateParse(e.time[i])+ "</small> <button class = 'btn btn-default' onclick=goLink('" +  e.link[i] + "');>이동</button></li><hr>" + noticeList.innerHTML;
+                    }
+                }).fail(function(e){
+                    alert("잠시 후 시도해주세요");
+                })
+            }
+
+        }
+        function dateParse(e){
+            str = e.substring(0,4) + "-" + e.substring(5,7) + "-" + e.substring(8,10) +" " + e.substring(11,19);
+            return str;
+        }
+        function goLink(e){
+            window.location.href = e;
+        }
+    </script>
+</th:block>
+</html>

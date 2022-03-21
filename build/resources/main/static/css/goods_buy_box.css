@@ -1,0 +1,39 @@
+.menu {
+    width: 200px;
+    height: auto;
+    border: 1px solid #524A4E;
+    background-color: #ffffff;
+    border-radius: 3px;
+    position: fixed;
+    top: 300px;
+    right: 50px;
+    color:#524A4E;
+    padding: 20px;
+    /*display: flex;*/
+}
+.goods_like_btn {
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    margin: 10px 0px;
+}
+.goods_count_label {
+    font-size: 15px;
+    margin-top: 5px;
+    text-align: center;
+}
+.goods_count_box {
+    width: 150px !important;
+    height: 50px !important;
+    box-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+}
+
+.long_btn_3 {
+    text-align: center;
+    width: 100px;
+    height:50px;
+    border-radius: 4px;
+    padding:5px 15px;
+    background-color: #FF5C8D;
+    color: #fff;
+}
